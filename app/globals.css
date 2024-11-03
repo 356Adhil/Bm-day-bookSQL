@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body {
+  @apply bg-gray-50 text-gray-800;
+}
+
+input, button {
+  @apply border rounded-md p-2;
+}
