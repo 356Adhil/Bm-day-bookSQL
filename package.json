@@ -20,7 +20,9 @@
     "react": "18.2.0",
     "react-chartjs-2": "^5.2.0",
     "react-dom": "18.2.0",
-    "recharts": "^2.13.2"
+    "recharts": "^2.13.2",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7"
   },
   "devDependencies": {
     "eslint": "^8",

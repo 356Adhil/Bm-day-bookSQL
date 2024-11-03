@@ -1,9 +1,9 @@
-import { connectDB } from "@/app/services/db";
-import Receipt from "@/app/services/models/Reciepts";
+// bm-day-book/app/api/receipts/route.js
+import { openDB } from "@/app/services/db.mjs"; // Adjust the import based on your SQLite connection file
 
 // Named export for the GET method to list today's receipt entries
 export const GET = async (req) => {
-  await connectDB(); // Ensure database connection is established
+  const db = await openDB(); // Ensure database connection is established
 
   try {
     const today = new Date();
@@ -11,12 +11,13 @@ export const GET = async (req) => {
     const endOfDay = new Date(today.setUTCHours(23, 59, 59, 999)); // End of the day in UTC
 
     // Fetch all receipt entries for today, sorted by date descending
-    const receipts = await Receipt.find({
-      date: {
-        $gte: startOfDay,
-        $lte: endOfDay,
-      },
-    }).sort({ date: -1 });
+    const receipts = await db.all(
+      `SELECT * FROM Receipts 
+       WHERE date >= ? AND date <= ? 
+       ORDER BY date DESC`,
+      startOfDay.toISOString(),
+      endOfDay.toISOString()
+    );
 
     return new Response(JSON.stringify(receipts), { status: 200 });
   } catch (error) {
@@ -29,7 +30,7 @@ export const GET = async (req) => {
 
 // Named export for the PUT method to update a receipt entry
 export const PUT = async (req) => {
-  await connectDB(); // Ensure database connection is established
+  const db = await openDB(); // Ensure database connection is established
 
   try {
     const receiptData = await req.json(); // Parse JSON data from request body
@@ -43,17 +44,27 @@ export const PUT = async (req) => {
     }
 
     // Update the receipt in the database
-    const updatedReceipt = await Receipt.findByIdAndUpdate(
-      receiptData.id,
-      { ...receiptData }, // Ensure you only send the necessary fields to update
-      { new: true }
+    const result = await db.run(
+      `UPDATE Receipts 
+       SET amount = ?, description = ? 
+       WHERE id = ?`,
+      receiptData.amount,
+      receiptData.description,
+      receiptData.id
     );
 
-    if (!updatedReceipt) {
+    // Check if any row was updated
+    if (result.changes === 0) {
       return new Response(JSON.stringify({ message: "Receipt not found." }), {
         status: 404,
       });
     }
+
+    // Fetch the updated receipt
+    const updatedReceipt = await db.get(
+      `SELECT * FROM Receipts WHERE id = ?`,
+      receiptData.id
+    );
 
     return new Response(JSON.stringify(updatedReceipt), { status: 200 });
   } catch (error) {

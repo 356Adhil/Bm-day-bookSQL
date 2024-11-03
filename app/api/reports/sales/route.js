@@ -1,10 +1,9 @@
 // bm-day-book/app/api/reports/report/route.js
-import { connectDB } from "@/app/services/db";
-import Sale from "@/app/services/models/Sale";
+import { openDB } from "@/app/services/db.mjs";
 
 // Named export for the GET method
 export const GET = async (req) => {
-  await connectDB(); // Ensure database connection is established
+  const db = await openDB(); // Ensure database connection is established
 
   try {
     // Get the date from the query parameters
@@ -12,38 +11,40 @@ export const GET = async (req) => {
     const date = searchParams.get("date");
     console.log(date);
 
-    // Build aggregation pipeline
-    const pipeline = [];
-
-    // If date is provided, add a match stage to filter by that date
+    // If date is provided, build the SQL query to filter by that date
+    let salesReports;
     if (date) {
       const startOfDay = new Date(date);
       const endOfDay = new Date(startOfDay);
       endOfDay.setDate(startOfDay.getDate() + 1);
 
-      pipeline.push({
-        $match: {
-          date: { $gte: startOfDay, $lt: endOfDay },
-        },
-      });
+      // Fetch total sales and count for the provided date
+      salesReports = await db.all(
+        `SELECT 
+          DATE(date) as saleDate,
+          SUM(amount) as totalSales,
+          COUNT(*) as count 
+        FROM Sales 
+        WHERE date >= ? AND date < ?
+        GROUP BY saleDate
+        ORDER BY saleDate ASC`,
+        startOfDay.toISOString(),
+        endOfDay.toISOString()
+      );
+    } else {
+      // If no date is provided, fetch all sales (you can modify this as needed)
+      salesReports = await db.all(
+        `SELECT 
+          DATE(date) as saleDate,
+          SUM(amount) as totalSales,
+          COUNT(*) as count 
+        FROM Sales 
+        GROUP BY saleDate
+        ORDER BY saleDate ASC`
+      );
     }
 
-    // Group by date and calculate total sales and count
-    pipeline.push(
-      {
-        $group: {
-          _id: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
-          totalSales: { $sum: "$amount" },
-          count: { $sum: 1 },
-        },
-      },
-      {
-        $sort: { _id: 1 }, // Sort by date
-      }
-    );
-
-    const reports = await Sale.aggregate(pipeline);
-    return new Response(JSON.stringify(reports), { status: 200 });
+    return new Response(JSON.stringify(salesReports), { status: 200 });
   } catch (error) {
     console.error("Error fetching sales reports:", error);
     return new Response(JSON.stringify({ message: "Internal Server Error" }), {
@@ -52,8 +53,9 @@ export const GET = async (req) => {
   }
 };
 
+// Named export for the POST method
 export const POST = async (req) => {
-  await connectDB(); // Ensure database connection is established
+  const db = await openDB(); // Ensure database connection is established
 
   try {
     const saleData = await req.json(); // Parse JSON data from request body
@@ -69,14 +71,14 @@ export const POST = async (req) => {
       );
     }
 
-    // Create a new Sale instance and save it to the database
-    const newSale = new Sale({
-      amount: saleData.amount,
-      invoiceNumber: `INV${saleData.invoiceNumber}`,
-      enteredBy: "6723b04af5f8e4297a77062f", // Hardcoded for now, should be dynamic
-    });
-
-    await newSale.save(); // Save the sale to the database
+    // Insert the new sale into the database
+    await db.run(
+      `INSERT INTO Sales (amount, date, invoiceNumber, enteredBy) VALUES (?, ?, ?, ?)`,
+      saleData.amount,
+      saleData.date,
+      `INV${saleData.invoiceNumber}`,
+      2 // Hardcoded for now, should be dynamic
+    );
 
     return new Response(
       JSON.stringify({ message: "Sale added successfully." }),

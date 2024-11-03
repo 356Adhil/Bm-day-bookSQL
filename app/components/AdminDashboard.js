@@ -39,6 +39,8 @@ export default function AdminDashboard() {
         const salesData = await salesResponse.json();
         const expensesData = await expensesResponse.json();
 
+        console.log("Sales Data:", salesData);
+        console.log("Expenses Data:", expensesData);
         const combinedData = salesData.map((sale) => {
           const expense =
             expensesData.find((exp) => exp.date === sale.date) || {};

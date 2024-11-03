@@ -46,7 +46,7 @@ export default function ReceiptEntries() {
       await axios.put(
         `/api/reports/receipts/list`,
         {
-          id: editingReceipt._id,
+          id: editingReceipt.id,
           amount: updatedAmount,
           description: updatedDescription,
         },
@@ -57,7 +57,7 @@ export default function ReceiptEntries() {
 
       setReceipts((prevReceipts) =>
         prevReceipts.map((receipt) =>
-          receipt._id === editingReceipt._id
+          receipt.id === editingReceipt.id
             ? {
                 ...receipt,
                 amount: updatedAmount,
@@ -136,7 +136,7 @@ export default function ReceiptEntries() {
             {receipts.length > 0 ? (
               receipts.map((receipt) => (
                 <div
-                  key={receipt._id}
+                  key={receipt.id}
                   className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-all duration-200"
                 >
                   <div className="flex items-center justify-between">

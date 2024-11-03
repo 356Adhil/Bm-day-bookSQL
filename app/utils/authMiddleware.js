@@ -1,8 +1,9 @@
 // bm-day-book/app/utils/authMiddleware.js
 import { NextResponse } from "next/server";
 import { verifyToken } from "../services/auth";
+import { openDB } from "../services/db.mjs"; // Import the database connection
 
-export const authMiddleware = (handler, role) => async (req, res) => {
+export const authMiddleware = (handler) => async (req, res) => {
   const authHeader =
     req.headers.get("authorization") || req.headers.get("Authorization");
   const token = authHeader ? authHeader.split(" ")[1] : null;
@@ -13,13 +14,16 @@ export const authMiddleware = (handler, role) => async (req, res) => {
 
   try {
     const decoded = verifyToken(token);
-    req.user = decoded; // Attach the decoded user data to the request
+    const db = await openDB(); // Open the database connection
 
-    // Check role after the user has been decoded
-    if (!req.user.role) {
-      // Change 'expected_role' to your required role
-      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    // Fetch user data from the database
+    const user = await db.get("SELECT * FROM Users WHERE id = ?", decoded.id);
+
+    if (!user) {
+      return NextResponse.json({ message: "User not found" }, { status: 404 });
     }
+
+    req.user = user; // Attach the user data to the request
 
     return await handler(req, res); // Call the next handler
   } catch (error) {

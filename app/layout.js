@@ -23,9 +23,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
-        <link rel="icon" href="/compass-regular.png" type="image/png" />
+        <link rel="icon" href="/bm.png" type="image/png" />
         <link rel="manifest" href="/manifest.json" />
-        <link rel="apple-touch-icon" href="/compass-regular.png" />
+        <link rel="apple-touch-icon" href="/bm.png" />
         <meta name="theme-color" content="#000000" />
 
         <meta name="viewport" content="width=device-width, initial-scale=1" />

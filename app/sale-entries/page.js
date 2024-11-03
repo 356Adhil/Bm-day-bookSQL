@@ -43,10 +43,11 @@ export default function SaleEntries() {
     const token = localStorage.getItem("token");
 
     try {
+      console.log("editingSale:", editingSale);
       await axios.put(
         `/api/reports/sales/list`,
         {
-          id: editingSale._id,
+          id: editingSale.id,
           amount: updatedAmount,
           invoiceNumber: updatedInvoiceNumber,
         },
@@ -57,7 +58,7 @@ export default function SaleEntries() {
 
       setSales((prevSales) =>
         prevSales.map((sale) =>
-          sale._id === editingSale._id
+          sale.id === editingSale.id
             ? {
                 ...sale,
                 amount: updatedAmount,
@@ -136,7 +137,7 @@ export default function SaleEntries() {
             {sales.length > 0 ? (
               sales.map((sale) => (
                 <div
-                  key={sale._id}
+                  key={sale.id}
                   className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-all duration-200"
                 >
                   <div className="flex items-center justify-between">

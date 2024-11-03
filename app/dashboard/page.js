@@ -119,7 +119,7 @@ const UserDashboard = ({ sales, expenses, isLoading, error }) => {
 
   const totalSales = sales.reduce((sum, sale) => sum + Number(sale.amount), 0);
   const totalExpenses = expenses.reduce(
-    (sum, expense) => sum + Number(expense.amount),
+    (sum, expense) => sum + Number(expense.expenseAmount),
     0
   );
 

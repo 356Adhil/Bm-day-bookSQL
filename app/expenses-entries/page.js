@@ -34,7 +34,7 @@ export default function ExpenseEntries() {
 
   const handleEditClick = (expense) => {
     setEditingExpense(expense);
-    setUpdatedAmount(expense.amount);
+    setUpdatedAmount(expense.expenseAmount);
     setUpdatedDescription(expense.description);
   };
 
@@ -46,8 +46,8 @@ export default function ExpenseEntries() {
       await axios.put(
         `/api/reports/expenses/list`,
         {
-          id: editingExpense._id,
-          amount: updatedAmount,
+          id: editingExpense.id,
+          expenseAmount: updatedAmount,
           description: updatedDescription,
         },
         {
@@ -57,10 +57,10 @@ export default function ExpenseEntries() {
 
       setExpenses((prevExpenses) =>
         prevExpenses.map((expense) =>
-          expense._id === editingExpense._id
+          expense.id === editingExpense.id
             ? {
                 ...expense,
-                amount: updatedAmount,
+                expenseAmount: updatedAmount,
                 description: updatedDescription,
               }
             : expense
@@ -121,7 +121,7 @@ export default function ExpenseEntries() {
             <div className="text-3xl font-bold text-gray-800 mb-1">
               ₹
               {expenses
-                .reduce((sum, expense) => sum + Number(expense.amount), 0)
+                .reduce((sum, expense) => sum + Number(expense.expenseAmount), 0)
                 .toLocaleString()}
             </div>
             <div className="text-sm text-blue-500 font-medium">
@@ -136,7 +136,7 @@ export default function ExpenseEntries() {
             {expenses.length > 0 ? (
               expenses.map((expense) => (
                 <div
-                  key={expense._id}
+                  key={expense.id}
                   className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-all duration-200"
                 >
                   <div className="flex items-center justify-between">
@@ -153,7 +153,7 @@ export default function ExpenseEntries() {
                         </button>
                       </div>
                       <div className="text-xl font-bold text-gray-800">
-                        ₹{Number(expense.amount).toLocaleString()}
+                        ₹{Number(expense.expenseAmount).toLocaleString()}
                       </div>
                       <div className="text-sm text-gray-400 mt-1">
                         {new Date(expense.date).toLocaleDateString("en-US", {
