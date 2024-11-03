@@ -1,4 +1,3 @@
-// app/dashboard/page.js
 "use client";
 
 import { useEffect, useState, Suspense } from "react";
